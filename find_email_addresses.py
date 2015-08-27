@@ -40,7 +40,6 @@ class FindEmailAddresses(object):
     def createUrl(self, url):
         # Parse the url to get netloc and path to check if the url belongs to the input domain, else add it
         # to make the relative url a complete one with domain
-        #pdb.set_trace()
         # if command line domain (jana.com) is equal to url jana.com
         if self.args_dict['domain'] is not url:
             # if command line domain jana.com does NOT match url twitter.com/signup
@@ -71,7 +70,6 @@ class FindEmailAddresses(object):
         :param url: link that needs to be opened and then soupified
         """
         try:
-            print 'URL:', url
             conn = urllib2.urlopen(url)
             # Collect all the pages open
             self.openedPages.append(url)
@@ -127,7 +125,6 @@ class FindEmailAddresses(object):
 
         """
         if self.discoveredPages:
-            pdb.set_trace()
             for discoveredPage in self.discoveredPages:
                 if not discoveredPage in self.openedPages:
                     self.openUrl(discoveredPage)
