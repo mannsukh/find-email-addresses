@@ -4,12 +4,13 @@ import urllib2
 import re
 from urlparse import urlparse, urlsplit
 import argparse
+from subprocess import call
 import pdb
+
+from render import *
 
 from bs4 import BeautifulSoup
 
-
-# write unit tests
 
 # Start class FindEmailAddresses
 class FindEmailAddresses(object):
@@ -26,6 +27,7 @@ class FindEmailAddresses(object):
         self.mailTos = []
         self.discoveredPages = []
         self.openedPages = []
+        self.renderedPages = []
         parser = argparse.ArgumentParser(description='Find email addresses from the given domain.')
         parser.add_argument('domain', type=str, help='A domain name for the file to parse and find email addresses')
         args = parser.parse_args()
@@ -70,15 +72,16 @@ class FindEmailAddresses(object):
         :param url: link that needs to be opened and then soupified
         """
         try:
-            conn = urllib2.urlopen(url)
-            # Collect all the pages open
-            self.openedPages.append(url)
-            self.soupify(conn)
+            if re.search(r'\.js$|\.css$', url) is None:
+                conn = urllib2.urlopen(url)
+                # Collect all the pages open
+                self.openedPages.append(url)
+                self.soupify(url, conn)
         except Exception:
             pass
-            #print 'Cannot open url or invalid domain name %s' % url
+            # print 'Cannot open url or invalid domain name %s' % url - Log error here
 
-    def soupify(self, conn):
+    def soupify(self, url, conn):
         """
         Uses the BeautifulSoup library to read text from the conn object
         :param conn: Object returned by the urllib2 library when opening the url
@@ -104,6 +107,24 @@ class FindEmailAddresses(object):
                             if re.search(self.args_dict['domain'], parsed.netloc) is not None:
                                 self.discoveredPages.append(url)
 
+                        # Render.py code starts
+                        if re.search(r'\.js$|\.css$', url) is None:
+                            # match = re.search(r'(http://.*?/.*?)/', url) should be used here but using the following
+                            # to avoid Segmentation fault
+                            match = re.search(r'(.*/contact)', url)
+
+                            if match:
+                                url = match.group(0)
+                                if url not in self.renderedPages:
+                                    h = Render(url).html
+                                    self.renderedPages.append(url)
+                                    if bool(h):
+                                        # Regular expression to read email addresses
+                                        textEmails = re.findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+", h, re.I)
+                                        # find all email addresses and store in self.emails list data structure
+                                        for i in textEmails:
+                                            self.emails.append(str(i))
+                                            # Render.py code ends
             # find all mailto (email) tags elements and store in self.emails list data structure
             self.mailTos = soup.select('a[href^=mailto]')
             for i in self.mailTos:
@@ -124,8 +145,9 @@ class FindEmailAddresses(object):
         Prints the list of email addresses found using this class; FindEmailAddresses
 
         """
-        if self.discoveredPages:
-            for discoveredPage in self.discoveredPages:
+        uniqueDiscoveredPages = set(self.discoveredPages)
+        if uniqueDiscoveredPages:
+            for discoveredPage in uniqueDiscoveredPages:
                 if not discoveredPage in self.openedPages:
                     self.openUrl(discoveredPage)
 
@@ -154,7 +176,6 @@ def main():
     # if parsed.scheme is empty, http:// is missing we need to prepend that to the args.url
     if not parsed.scheme:
         findEmailAddresses.url = findEmailAddresses.createUrl(findEmailAddresses.args_dict['domain'])
-
     try:
         findEmailAddresses.openUrl(findEmailAddresses.url)
     except Exception:
@@ -168,5 +189,4 @@ def main():
 if __name__ == "__main__":
     # Call the main method
     sys.exit(main())
-
     # END: if __name__ == "__main__":
