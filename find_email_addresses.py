@@ -4,11 +4,9 @@ import urllib2
 import re
 from urlparse import urlparse, urlsplit
 import argparse
+
 from subprocess import call
-import pdb
-
 from render import *
-
 from bs4 import BeautifulSoup
 
 
