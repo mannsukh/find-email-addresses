@@ -29,3 +29,5 @@ press@jana.com
 info@jana.com
 sales@jana.com
 msingh@msingh-Precision-M4700:~$
+
+Another example: python find_email_addresses.py aboilcompany.com
