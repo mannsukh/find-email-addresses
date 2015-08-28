@@ -22,7 +22,7 @@ Check that the PYTHONPATH is set correctly by typing: echo $PYTHONPATH, the term
 QFont::setPixelSize: Pixel size <= 0 (0)
 - This is due to a bug in PyQt4 and this bug has been fixed with PyQt5, but PyQt5 is for Python3 and it is not backwards compatible. So leaving the issue as-is.
 
-6. Output:
+6. Output
 $ python find_email_addresses.py jana.com
 Found these email addresses:
 press@jana.com
